@@ -4,7 +4,8 @@ const {
   Stage,
   Container,
   Shape,
-  Ticker
+  Ticker,
+  Text
 } = window.createjs
 
 const NUM_COINS = 5
@@ -51,6 +52,15 @@ class Game extends Component {
   constructor(props) {
     super(props)
     this.Ticker = Ticker
+  }
+
+  // rough text for now
+  createText = (x, y, textVal) => {
+    const text = new Text(textVal, "20px Arial", "#000");
+    text.x = x;
+    text.y = y
+    text.textBaseline = "alphabetic";
+    return text
   }
 
   togglePause = () => {
@@ -109,12 +119,12 @@ class Game extends Component {
     } = event
   }
 
-  createCoin(x, y) {
+  createCoin() {
     // create the ball
     const coinShape = new Shape()
     coinShape.graphics.beginFill("yellow").drawCircle(0, 0, COIN_RADIUS)
-    coinShape.x = x
-    coinShape.y = y
+    coinShape.x = 0
+    coinShape.y = 0
     // playerShape.setBounds(0, , 24, 24)
 
     const coin = new Container()
@@ -126,10 +136,7 @@ class Game extends Component {
     const coins = []
     for (let i = 0; i < NUM_COINS; ++i) {
       // quick hack seems to make the coins not partially drawn off canvas
-      let x = Math.floor(Math.random() * (this.gameCanvas.width - COIN_RADIUS * 2)) + COIN_RADIUS
-      let y = Math.floor(Math.random() * (this.gameCanvas.height - COIN_RADIUS * 2)) + COIN_RADIUS
-      let coin = this.createCoin(x,y)
-      console.log({coin})
+      let coin = this.createCoin()
       scene.addChild(coin)
       coins.push(coin)
     }
@@ -154,8 +161,8 @@ class Game extends Component {
     // create the ball
     const playerShape = new Shape()
     playerShape.graphics.beginFill("blue").drawRect(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT)
-    playerShape.x = WIDTH / 2 - PLAYER_WIDTH / 2
-    playerShape.y = HEIGHT / 2 - PLAYER_HEIGHT / 2
+    playerShape.x = 0 
+    playerShape.y = 0
 
     const player = new Container()
     player.addChild(playerShape)
@@ -168,6 +175,18 @@ class Game extends Component {
     stage.addChild(scene)
 
     stage.update();
+    // after initial update - now set positions, so shapes line up with containers
+    gameState.player.x = WIDTH / 2 - PLAYER_WIDTH / 2
+    gameState.player.y = HEIGHT / 2 - PLAYER_HEIGHT / 2
+    gameState.coins.forEach( (coin, index) => {
+      let x = Math.floor(Math.random() * (this.gameCanvas.width - COIN_RADIUS * 2)) + COIN_RADIUS
+      let y = Math.floor(Math.random() * (this.gameCanvas.height - COIN_RADIUS * 2)) + COIN_RADIUS
+      coin.children[0].x = x
+      coin.children[0].y = y
+      // TODO: quick debug trick for helping with coin detection
+      const text = this.createText(x, y, `${index}`)
+      coin.addChild(text)
+    })
 
     this.Ticker.timingMode = Ticker.RAF_SYNCHED;
     this.Ticker.framerate = 40;
@@ -182,7 +201,6 @@ class Game extends Component {
       }
     }
     this.Ticker.on("tick", tick)
-
   }
 
   // the gameState is passed as a shallow copied object, not deep copied
@@ -202,31 +220,65 @@ class Game extends Component {
   }
 
   hitCanvasEdge(gameState) {
-    // TODO: find out why '315' and '225' is nice-ish here...
-    if (gameState.player.x <= -315) {
+    if (gameState.player.x <= 0) {
       gameState.player.x += 15
     }
-    if (gameState.player.x >= 315) {
+    if (gameState.player.x >= (640 - PLAYER_WIDTH)) {
       gameState.player.x -= 15
     }
-    if (gameState.player.y <= -225) {
+    if (gameState.player.y <= 0) {
       gameState.player.y += 15
     }
-    if (gameState.player.y >= 225) {
+    if (gameState.player.y >= (480 - PLAYER_HEIGHT)) {
       gameState.player.y -= 15
     }
   }
 
-  // TODO: work on coin collision
+  // TODO: work on coin collision - improve efficiency of hit calc
   hitCoin(gameState) {
     gameState.coins.forEach((coin, index) => {
       const playerX = gameState.player.x
       const playerY = gameState.player.y
       const coinX = coin.children[0].x
       const coinY = coin.children[0].y
-      if(playerX <= coinX - COIN_RADIUS && playerX + PLAYER_WIDTH >= coinX + COIN_RADIUS ) {
-        console.log('hit coin')
+      const centerPlayerX = gameState.player.x + PLAYER_WIDTH / 2
+      const centerPlayerY = gameState.player.y + PLAYER_HEIGHT / 2
+          
+      const  corner1 = {
+        x: (centerPlayerX + PLAYER_WIDTH / 2), 
+        y: (centerPlayerY + PLAYER_HEIGHT / 2)
       }
+      const  corner2 = {
+        x: (centerPlayerX + PLAYER_WIDTH / 2), 
+        y: (centerPlayerY - PLAYER_HEIGHT / 2)
+      }
+      const  corner3 = {
+        x: (centerPlayerX - PLAYER_WIDTH / 2), 
+        y: (centerPlayerY + PLAYER_HEIGHT / 2)
+      }
+      const  corner4 = {
+        x: (centerPlayerX - PLAYER_WIDTH / 2), 
+        y: (centerPlayerY - PLAYER_HEIGHT / 2)
+      }
+
+      // distance from corner to circle center is less than or equal to radius === hit
+      // distance = Math.sqrt((coinX-cornerX)**2 + (coinY - cornerY)**2 )
+      // TODO: sqrts are expensive
+      const distanceFromCircle1 = Math.sqrt((coinX-corner1.x)**2 + (coinY - corner1.y)**2 )
+      const distanceFromCircle2 = Math.sqrt((coinX-corner2.x)**2 + (coinY - corner2.y)**2 )
+      const distanceFromCircle3 = Math.sqrt((coinX-corner3.x)**2 + (coinY - corner3.y)**2 )
+      const distanceFromCircle4 = Math.sqrt((coinX-corner4.x)**2 + (coinY - corner4.y)**2 )
+
+      if (distanceFromCircle1 <= COIN_RADIUS) {
+        console.log('hit via corner 1', {index})
+      } else if (distanceFromCircle2 <= COIN_RADIUS) {
+        console.log('hit via corner 2', {index})
+      } else if (distanceFromCircle3 <= COIN_RADIUS) {
+        console.log('hit via corner 3', {index})
+      } else if (distanceFromCircle4 <= COIN_RADIUS) {
+        console.log('hit via corner 4',{index})
+      }
+
     })
   }
 
