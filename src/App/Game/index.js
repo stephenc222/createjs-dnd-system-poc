@@ -195,7 +195,7 @@ class Game extends Component {
       if (!gameState.paused) {
         if (gameState.isMoving) {
           this.movePlayer(gameState)
-          this.checkCollision(gameState)
+          this.checkCollision(gameState, scene)
         }
         stage.update()
       }
@@ -214,9 +214,9 @@ class Game extends Component {
     gameState.moveLeft && (gameState.player.x -= 15)
   }
 
-  checkCollision = (gameState) => {
+  checkCollision = (gameState, scene) => {
     this.hitCanvasEdge(gameState)
-    this.hitCoin(gameState)
+    this.hitCoin(gameState, scene)
   }
 
   hitCanvasEdge(gameState) {
@@ -235,7 +235,7 @@ class Game extends Component {
   }
 
   // TODO: work on coin collision - improve efficiency of hit calc
-  hitCoin(gameState) {
+  hitCoin(gameState, scene) {
     gameState.coins.forEach((coin, index) => {
       const playerX = gameState.player.x
       const playerY = gameState.player.y
@@ -243,42 +243,31 @@ class Game extends Component {
       const coinY = coin.children[0].y
       const centerPlayerX = gameState.player.x + PLAYER_WIDTH / 2
       const centerPlayerY = gameState.player.y + PLAYER_HEIGHT / 2
-          
-      const  corner1 = {
-        x: (centerPlayerX + PLAYER_WIDTH / 2), 
-        y: (centerPlayerY + PLAYER_HEIGHT / 2)
+
+      const distX = Math.abs(coinX - centerPlayerX)
+      const distY = Math.abs(coinY - centerPlayerY)
+
+      if (distX > (PLAYER_WIDTH / 2 + COIN_RADIUS)) { 
+        return
       }
-      const  corner2 = {
-        x: (centerPlayerX + PLAYER_WIDTH / 2), 
-        y: (centerPlayerY - PLAYER_HEIGHT / 2)
-      }
-      const  corner3 = {
-        x: (centerPlayerX - PLAYER_WIDTH / 2), 
-        y: (centerPlayerY + PLAYER_HEIGHT / 2)
-      }
-      const  corner4 = {
-        x: (centerPlayerX - PLAYER_WIDTH / 2), 
-        y: (centerPlayerY - PLAYER_HEIGHT / 2)
+      if (distY > (PLAYER_HEIGHT / 2 + COIN_RADIUS)) { 
+        return
       }
 
-      // distance from corner to circle center is less than or equal to radius === hit
-      // distance = Math.sqrt((coinX-cornerX)**2 + (coinY - cornerY)**2 )
-      // TODO: sqrts are expensive
-      const distanceFromCircle1 = Math.sqrt((coinX-corner1.x)**2 + (coinY - corner1.y)**2 )
-      const distanceFromCircle2 = Math.sqrt((coinX-corner2.x)**2 + (coinY - corner2.y)**2 )
-      const distanceFromCircle3 = Math.sqrt((coinX-corner3.x)**2 + (coinY - corner3.y)**2 )
-      const distanceFromCircle4 = Math.sqrt((coinX-corner4.x)**2 + (coinY - corner4.y)**2 )
-
-      if (distanceFromCircle1 <= COIN_RADIUS) {
-        console.log('hit via corner 1', {index})
-      } else if (distanceFromCircle2 <= COIN_RADIUS) {
-        console.log('hit via corner 2', {index})
-      } else if (distanceFromCircle3 <= COIN_RADIUS) {
-        console.log('hit via corner 3', {index})
-      } else if (distanceFromCircle4 <= COIN_RADIUS) {
-        console.log('hit via corner 4',{index})
+      if (distX <= (PLAYER_WIDTH / 2)) {
+        ++gameState.score
+        scene.removeChild(coin)
+        gameState.coins.splice(index, 1) 
+        return 
+      } 
+      
+      if (distY <= (PLAYER_HEIGHT / 2)) { 
+        ++gameState.score
+        scene.removeChild(coin)
+        gameState.coins.splice(index, 1)
+        return 
       }
-
+      
     })
   }
 
