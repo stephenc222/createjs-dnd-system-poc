@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { createText } from '../util'
 
 const {
   Stage,
@@ -55,14 +56,7 @@ class Game extends Component {
   }
 
   // rough text for now
-  createText = (x, y, textVal) => {
-    const text = new Text(textVal, "20px Arial", "#000");
-    text.x = x;
-    text.y = y
-    text.textBaseline = "alphabetic";
-    return text
-  }
-
+  
   togglePause = () => {
     gameState.paused = !gameState.paused
   }
@@ -125,7 +119,6 @@ class Game extends Component {
     coinShape.graphics.beginFill("yellow").drawCircle(0, 0, COIN_RADIUS)
     coinShape.x = 0
     coinShape.y = 0
-    // playerShape.setBounds(0, , 24, 24)
 
     const coin = new Container()
     coin.addChild(coinShape)
@@ -167,14 +160,20 @@ class Game extends Component {
     const player = new Container()
     player.addChild(playerShape)
     gameState.player = player
+  
+    // set up HUD
+    this.scoreText = createText(30, 30, gameState.score)
+    this.timerText = createText(30, 50, gameState.timer)
 
     const scene = new Container()
     scene.addChild(player)
     this.addRandomCoins(scene)
     scene.mouseChildren = true
     stage.addChild(scene)
+    scene.addChild(this.scoreText)
+    scene.addChild(this.timerText)
 
-    stage.update();
+    stage.update()
     // after initial update - now set positions, so shapes line up with containers
     gameState.player.x = WIDTH / 2 - PLAYER_WIDTH / 2
     gameState.player.y = HEIGHT / 2 - PLAYER_HEIGHT / 2
@@ -184,7 +183,7 @@ class Game extends Component {
       coin.children[0].x = x
       coin.children[0].y = y
       // TODO: quick debug trick for helping with coin detection
-      const text = this.createText(x, y, `${index}`)
+      const text = createText(x, y, `${index}`)
       coin.addChild(text)
     })
 
@@ -197,11 +196,17 @@ class Game extends Component {
           this.movePlayer(gameState)
           this.checkCollision(gameState, scene)
         }
+        this.updateHUD(gameState)
         stage.update()
       }
     }
     this.Ticker.on("tick", tick)
   }
+
+updateHUD = (gameState) => {
+  this.timerText.text =  gameState.timer
+  this.scoreText.text =  gameState.score
+}
 
   // the gameState is passed as a shallow copied object, not deep copied
   // so relying on maintained references works
@@ -234,8 +239,7 @@ class Game extends Component {
     }
   }
 
-  // TODO: work on coin collision - improve efficiency of hit calc
-  hitCoin(gameState, scene) {
+  hitCoin = (gameState, scene) => {
     gameState.coins.forEach((coin, index) => {
       const playerX = gameState.player.x
       const playerY = gameState.player.y
@@ -272,19 +276,21 @@ class Game extends Component {
   }
 
   render () {
-    return ( <canvas 
-      width={640} 
-      height={480} 
-      style={{
-        border: '1px solid red',
-        background: 'darkgrey'
-      }} 
-      ref={(elem => this.gameCanvas = elem)}
-      onClick={this.togglePause}
-      onKeyDown={this.onKeyDown}
-      onKeyPress={this.onKeyPress}
-      onKeyUp={this.onKeyUp}
-    /> )
+    return ( 
+      <canvas 
+        width={640} 
+        height={480} 
+        style={{
+          border: '1px solid red',
+          background: 'darkgrey'
+        }} 
+        ref={(elem => this.gameCanvas = elem)}
+        onClick={this.togglePause}
+        onKeyDown={this.onKeyDown}
+        onKeyPress={this.onKeyPress}
+        onKeyUp={this.onKeyUp}
+      /> 
+    )
   }
 }
 
