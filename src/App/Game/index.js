@@ -124,6 +124,19 @@ class Game extends Component {
     coin.addChild(coinShape)
     return coin
   }
+
+  createPlayer() {
+    const playerShape = new Shape()
+    const player = new Container()
+
+    playerShape.graphics.beginFill("blue").drawRect(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT)
+    playerShape.x = 0 
+    playerShape.y = 0
+    
+    player.addChild(playerShape)
+
+    return player
+  }
   
   addRandomCoins = (scene) => {    
     const coins = []
@@ -151,14 +164,7 @@ class Game extends Component {
 
     const stage = new Stage(this.gameCanvas)
 
-    // create the ball
-    const playerShape = new Shape()
-    playerShape.graphics.beginFill("blue").drawRect(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT)
-    playerShape.x = 0 
-    playerShape.y = 0
-
-    const player = new Container()
-    player.addChild(playerShape)
+    const player = this.createPlayer()
     gameState.player = player
   
     // set up HUD
