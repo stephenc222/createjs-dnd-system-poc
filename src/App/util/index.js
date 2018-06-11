@@ -10,3 +10,8 @@ export const createText = (x, y, textVal) => {
   text.textBaseline = "alphabetic";
   return text
 }
+
+export const pascalCase = (input) => {
+  const name = input.replace(/-/g, '')
+  return name[0].toLocaleUpperCase() + name.substr(1,name.length)
+}

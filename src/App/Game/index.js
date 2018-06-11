@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { createText } from '../util'
+import { createText, pascalCase } from '../util'
 
 const {
   Stage,
@@ -44,7 +44,8 @@ const gameState = {
   moveRight: false,
   moveDown: false,
   moveUp: false,
-  isMoving: false
+  isMoving: false,
+  sceneName: 'play'
 }
 
 // main game Canvas container, class for context access
@@ -142,7 +143,7 @@ class Game extends Component {
     const coins = []
     for (let i = 0; i < NUM_COINS; ++i) {
       // quick hack seems to make the coins not partially drawn off canvas
-      let coin = this.createCoin()
+      const coin = this.createCoin()
       scene.addChild(coin)
       coins.push(coin)
     }
@@ -150,13 +151,32 @@ class Game extends Component {
     gameState.coins = coins    
   }
 
-  componentDidMount() {
-    // game init stuff
+  /**
+   * concatenates sceneName param to create reference correct scene to enter
+   * @param {string} sceneName - string used to look up which scene to enter
+   */
+  enterScene = (sceneName) => {
+    gameState.sceneName = sceneName
+    this[`${sceneName}Enter`]()
+  }
 
-    window.document.onkeydown = this.onKeyDown;
-    window.document.onkeyup = this.onKeyUp;
-    window.document.onkeypress = this.onKeyPress;
+  exitScene = (sceneName) => {
+    this[`${sceneName}Exit`]()
+  }
 
+  titleEnter = () => {
+    // TODO: enter Title Scene
+  }
+
+  titleUpdate = (gameState) => {
+    // TODO: update Title Scene
+  }
+
+  titleExit = () => {
+    // TODO: exit Title Scene
+  }
+
+  playEnter = () => {
     const {
       width: WIDTH,
       height: HEIGHT
@@ -178,8 +198,11 @@ class Game extends Component {
     stage.addChild(scene)
     scene.addChild(this.scoreText)
     scene.addChild(this.timerText)
+    gameState.scene = scene
 
     stage.update()
+    // add a master reference to stage
+    gameState.stage = stage
     // after initial update - now set positions, so shapes line up with containers
     gameState.player.x = WIDTH / 2 - PLAYER_WIDTH / 2
     gameState.player.y = HEIGHT / 2 - PLAYER_HEIGHT / 2
@@ -193,20 +216,57 @@ class Game extends Component {
       coin.addChild(text)
     })
 
+  }
+  playUpdate = (gameState) => {
+    if (!gameState.paused) {
+      if (gameState.isMoving) {
+        this.movePlayer(gameState)
+        this.checkCollision(gameState, gameState.scene)
+      }
+      this.updateHUD(gameState)
+      gameState.stage.update()
+    }
+  }
+
+  handlePlayEvent = () => {
+
+  }
+
+  playExit = () => {}
+
+  gameOverEnter = () => {
+    // TODO: enter game over scene
+  }
+
+  gameOverUpdate = () => {}
+
+  gameOverExit = () => {}
+
+  handleEvent = (event, sceneName) => {
+    this[`handle${pascalCase(sceneName)}Event`]
+  }
+
+
+  componentDidMount() {
+    // game init stuff
+
+    window.document.onkeydown = this.onKeyDown;
+    window.document.onkeyup = this.onKeyUp;
+    window.document.onkeypress = this.onKeyPress;
+
     this.Ticker.timingMode = Ticker.RAF_SYNCHED;
     this.Ticker.framerate = 40;
 
-    const tick = () => {
-      if (!gameState.paused) {
-        if (gameState.isMoving) {
-          this.movePlayer(gameState)
-          this.checkCollision(gameState, scene)
-        }
-        this.updateHUD(gameState)
-        stage.update()
-      }
+    // handle event then update scene state - pretty standard stuff
+    const masterTick = (event) => {
+      this.handleEvent(event, gameState.sceneName)
+      // gameState is a global
+      this[`${gameState.sceneName}Update`](gameState)
     }
-    this.Ticker.on("tick", tick)
+    this.Ticker.on("tick", (event) => masterTick(event))
+
+    this[`${gameState.sceneName}Enter`]()
+    
   }
 
 updateHUD = (gameState) => {
