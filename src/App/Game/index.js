@@ -1,5 +1,8 @@
 import React, { Component } from 'react'
-import { createText, pascalCase } from '../util'
+import { 
+  createText, 
+  pascalCase 
+} from '../util'
 
 const {
   Stage,
@@ -45,7 +48,7 @@ const gameState = {
   moveDown: false,
   moveUp: false,
   isMoving: false,
-  sceneName: 'play'
+  sceneName: 'title'
 }
 
 // main game Canvas container, class for context access
@@ -54,6 +57,7 @@ class Game extends Component {
   constructor(props) {
     super(props)
     this.Ticker = Ticker
+    this.stage = {}
   }
 
   // rough text for now
@@ -70,6 +74,14 @@ class Game extends Component {
     } = event
 
     const isKey = (keyMatch) => keyCode === keyMatch
+
+    if (gameState.sceneName === 'title') {
+      if(isKey(KEY.ENTER)) {
+        this.titleExit()
+        this.playEnter()
+        gameState.sceneName = 'play'
+      }
+    }
 
     if (isKey(KEY.LEFT)) {
       gameState.isMoving = true
@@ -164,16 +176,36 @@ class Game extends Component {
     this[`${sceneName}Exit`]()
   }
 
+  titleHandleEvent = (event) => {}
+  
   titleEnter = () => {
     // TODO: enter Title Scene
+    const {
+      width: WIDTH,
+      height: HEIGHT
+    } = this.gameCanvas
+
+    const stage = this.stage
+    // FIXME: position this better
+    const titleText = createText(WIDTH / 2, HEIGHT / 2 - 50, 'Coin Grabber - TITLE')
+    const subTitleText = createText(WIDTH / 2, HEIGHT / 2, 'Coin Grabber - subtitle')
+    const scene = new Container()
+    scene.addChild(titleText)
+    scene.addChild(subTitleText)
+    gameState.scene = scene
+    stage.addChild(scene)
+    stage.update()
+    gameState.stage = stage
   }
 
   titleUpdate = (gameState) => {
     // TODO: update Title Scene
+    gameState.stage.update()
   }
 
   titleExit = () => {
     // TODO: exit Title Scene
+    this.stage.removeChild(gameState.scene)
   }
 
   playEnter = () => {
@@ -182,7 +214,7 @@ class Game extends Component {
       height: HEIGHT
     } = this.gameCanvas
 
-    const stage = new Stage(this.gameCanvas)
+    const stage = this.stage
 
     const player = this.createPlayer()
     gameState.player = player
@@ -249,6 +281,7 @@ class Game extends Component {
 
   componentDidMount() {
     // game init stuff
+    this.stage = new Stage(this.gameCanvas)
 
     window.document.onkeydown = this.onKeyDown;
     window.document.onkeyup = this.onKeyUp;
