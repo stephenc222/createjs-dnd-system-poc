@@ -210,7 +210,7 @@ class Game extends Component {
     gameState.stage = stage
   }
 
-  titleUpdate = (gameState) => {
+  titleUpdate = (event,gameState) => {
     // TODO: update Title Scene
     gameState.stage.update()
   }
@@ -260,13 +260,14 @@ class Game extends Component {
     })
 
   }
-  playUpdate = (gameState) => {
+  playUpdate = (event, gameState) => {
     if (!gameState.paused) {
       if (gameState.isMoving) {
         this.movePlayer(gameState)
         this.checkCollision(gameState, gameState.scene)
       }
-      this.updateHUD(gameState)
+      this.updateHUD(event, gameState)
+
       gameState.stage.update()
     }
   }
@@ -306,7 +307,7 @@ class Game extends Component {
     const masterTick = (event) => {
       this.handleEvent(event, gameState.sceneName)
       // gameState is a global
-      this[`${gameState.sceneName}Update`](gameState)
+      this[`${gameState.sceneName}Update`](event, gameState)
     }
     this.Ticker.on("tick", (event) => masterTick(event))
 
@@ -314,8 +315,9 @@ class Game extends Component {
     
   }
 
-updateHUD = (gameState) => {
-  this.timerText.text =  gameState.timer
+updateHUD = (event, gameState) => {
+  gameState.timer -= event.delta/1000;
+  this.timerText.text =  Math.trunc(gameState.timer)
   this.scoreText.text =  gameState.score
 }
 
