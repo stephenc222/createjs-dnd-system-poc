@@ -60,8 +60,6 @@ class Game extends Component {
     this.stage = {}
   }
 
-  // rough text for now
-  
   togglePause = () => {
     gameState.paused = !gameState.paused
   }
@@ -187,11 +185,25 @@ class Game extends Component {
 
     const stage = this.stage
     // FIXME: position this better
-    const titleText = createText(WIDTH / 2, HEIGHT / 2 - 50, 'Coin Grabber - TITLE')
-    const subTitleText = createText(WIDTH / 2, HEIGHT / 2, 'Coin Grabber - subtitle')
+    const titleText = 'Coin Grabber - TITLE'
+    const subtitleText = 'Coin Grabber - subtitle'
+
+    const {width: titleTextLength} = this.ctx.measureText(titleText)
+    const {width: subTitleTextLength} = this.ctx.measureText(subtitleText)
+
+    const titleTextObj = createText(
+      WIDTH / 2 - titleTextLength, 
+      HEIGHT / 2 - 50, 
+      titleText
+    )
+    const subTitleTextObj = createText(
+      WIDTH / 2 - subTitleTextLength, 
+      HEIGHT / 2, 
+      subtitleText
+    )
     const scene = new Container()
-    scene.addChild(titleText)
-    scene.addChild(subTitleText)
+    scene.addChild(titleTextObj)
+    scene.addChild(subTitleTextObj)
     gameState.scene = scene
     stage.addChild(scene)
     stage.update()
@@ -232,7 +244,6 @@ class Game extends Component {
     scene.addChild(this.timerText)
     gameState.scene = scene
 
-    stage.update()
     // add a master reference to stage
     gameState.stage = stage
     // after initial update - now set positions, so shapes line up with containers
@@ -282,6 +293,7 @@ class Game extends Component {
   componentDidMount() {
     // game init stuff
     this.stage = new Stage(this.gameCanvas)
+    this.ctx = this.stage.canvas.getContext('2d')
 
     window.document.onkeydown = this.onKeyDown;
     window.document.onkeyup = this.onKeyUp;
