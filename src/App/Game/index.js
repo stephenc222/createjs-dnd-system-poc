@@ -1,4 +1,6 @@
 import React, { Component } from 'react'
+import ReactDOM from 'react-dom'
+
 import { 
   createText, 
   pascalCase 
@@ -16,7 +18,8 @@ const NUM_COINS = 5
 const COIN_RADIUS = 20
 const PLAYER_WIDTH = 50
 const PLAYER_HEIGHT = 50
-
+const WIDTH = 640
+const HEIGHT = 480
 
 const KEY = {
   END: 35,
@@ -79,6 +82,7 @@ class Game extends Component {
         this.playEnter()
         gameState.sceneName = 'play'
       }
+      return
     }
 
     if (isKey(KEY.LEFT)) {
@@ -99,21 +103,22 @@ class Game extends Component {
   onKeyUp = (event) => {
     const isKey = (keyMatch) => event.keyCode === keyMatch
 
-    if (isKey(KEY.LEFT)) {
-      gameState.moveLeft = false
-    } else if (isKey(KEY.RIGHT)) {
-      gameState.moveRight = false
-    } else if (isKey(KEY.DOWN)) {
-      gameState.moveDown = false
-    } if (isKey(KEY.UP)) {
-      gameState.moveUp = false
+    if (gameState.sceneName === 'play') {
+      if (isKey(KEY.LEFT)) {
+        gameState.moveLeft = false
+      } else if (isKey(KEY.RIGHT)) {
+        gameState.moveRight = false
+      } else if (isKey(KEY.DOWN)) {
+        gameState.moveDown = false
+      } if (isKey(KEY.UP)) {
+        gameState.moveUp = false
+      }
+  
+      // if none of these are true, then stop moving
+      if (!gameState.moveDown && !gameState.moveLeft && !gameState.moveUp && !gameState.moveRight) {
+        gameState.isMoving = false
+      }
     }
-
-    // if none of these are true, then stop moving
-    if (!gameState.moveDown && !gameState.moveLeft && !gameState.moveUp && !gameState.moveRight) {
-      gameState.isMoving = false
-    }
-
   }
 
   onKeyPress = (event) => {
@@ -127,11 +132,12 @@ class Game extends Component {
   createCoin() {
     // create the ball
     const coinShape = new Shape()
+    const coin = new Container()
+
     coinShape.graphics.beginFill("yellow").drawCircle(0, 0, COIN_RADIUS)
     coinShape.x = 0
     coinShape.y = 0
 
-    const coin = new Container()
     coin.addChild(coinShape)
     return coin
   }
@@ -145,7 +151,6 @@ class Game extends Component {
     playerShape.y = 0
     
     player.addChild(playerShape)
-
     return player
   }
   
@@ -184,7 +189,6 @@ class Game extends Component {
     } = this.gameCanvas
 
     const stage = this.stage
-    // FIXME: position this better
     const titleText = 'Coin Grabber - TITLE'
     const subtitleText = 'Coin Grabber - subtitle'
 
@@ -206,8 +210,8 @@ class Game extends Component {
     scene.addChild(subTitleTextObj)
     gameState.scene = scene
     stage.addChild(scene)
-    stage.update()
     gameState.stage = stage
+    gameState.stage.update()
   }
 
   titleUpdate = (event,gameState) => {
@@ -221,10 +225,6 @@ class Game extends Component {
   }
 
   playEnter = () => {
-    const {
-      width: WIDTH,
-      height: HEIGHT
-    } = this.gameCanvas
 
     const stage = this.stage
 
@@ -243,6 +243,7 @@ class Game extends Component {
     scene.addChild(this.scoreText)
     scene.addChild(this.timerText)
     gameState.scene = scene
+    gameState.sceneName = 'play'
 
     // add a master reference to stage
     gameState.stage = stage
@@ -268,6 +269,13 @@ class Game extends Component {
       }
       this.updateHUD(event, gameState)
 
+      if (gameState.timer <= 0) {
+        gameState.sceneName = 'gameOver'
+        this.playExit()
+        this.gameOverEnter()
+        return
+      }
+
       gameState.stage.update()
     }
   }
@@ -276,10 +284,36 @@ class Game extends Component {
 
   }
 
-  playExit = () => {}
+  playExit = () => {
+    this.stage.removeChild(gameState.scene)
+  }
 
   gameOverEnter = () => {
     // TODO: enter game over scene
+    const stage = this.stage
+    const titleText = 'GAME OVER - TITLE'
+    const subtitleText = 'GAME OVER - subtitle'
+
+    const {width: titleTextLength} = this.ctx.measureText(titleText)
+    const {width: subTitleTextLength} = this.ctx.measureText(subtitleText)
+
+    const titleTextObj = createText(
+      WIDTH / 2 - titleTextLength, 
+      HEIGHT / 2 - 50, 
+      titleText
+    )
+    const subTitleTextObj = createText(
+      WIDTH / 2 - subTitleTextLength, 
+      HEIGHT / 2, 
+      subtitleText
+    )
+    const scene = new Container()
+    scene.addChild(titleTextObj)
+    scene.addChild(subTitleTextObj)
+    gameState.scene = scene
+    stage.addChild(scene)
+    gameState.stage = stage
+    gameState.stage.update()
   }
 
   gameOverUpdate = () => {}
@@ -287,7 +321,7 @@ class Game extends Component {
   gameOverExit = () => {}
 
   handleEvent = (event, sceneName) => {
-    this[`handle${pascalCase(sceneName)}Event`]
+    // this[`handle${pascalCase(sceneName)}Event`](event)
   }
 
 
@@ -303,6 +337,8 @@ class Game extends Component {
     this.Ticker.timingMode = Ticker.RAF_SYNCHED;
     this.Ticker.framerate = 40;
 
+    this[`${gameState.sceneName}Enter`]()
+    this.gameCanvas.focus()
     // handle event then update scene state - pretty standard stuff
     const masterTick = (event) => {
       this.handleEvent(event, gameState.sceneName)
@@ -310,9 +346,6 @@ class Game extends Component {
       this[`${gameState.sceneName}Update`](event, gameState)
     }
     this.Ticker.on("tick", (event) => masterTick(event))
-
-    this[`${gameState.sceneName}Enter`]()
-    
   }
 
 updateHUD = (event, gameState) => {
@@ -341,13 +374,13 @@ updateHUD = (event, gameState) => {
     if (gameState.player.x <= 0) {
       gameState.player.x += 15
     }
-    if (gameState.player.x >= (640 - PLAYER_WIDTH)) {
+    if (gameState.player.x >= (WIDTH - PLAYER_WIDTH)) {
       gameState.player.x -= 15
     }
     if (gameState.player.y <= 0) {
       gameState.player.y += 15
     }
-    if (gameState.player.y >= (480 - PLAYER_HEIGHT)) {
+    if (gameState.player.y >= (HEIGHT - PLAYER_HEIGHT)) {
       gameState.player.y -= 15
     }
   }
@@ -358,8 +391,8 @@ updateHUD = (event, gameState) => {
       const playerY = gameState.player.y
       const coinX = coin.children[0].x
       const coinY = coin.children[0].y
-      const centerPlayerX = gameState.player.x + PLAYER_WIDTH / 2
-      const centerPlayerY = gameState.player.y + PLAYER_HEIGHT / 2
+      const centerPlayerX = playerX + PLAYER_WIDTH / 2
+      const centerPlayerY = playerY + PLAYER_HEIGHT / 2
 
       const distX = Math.abs(coinX - centerPlayerX)
       const distY = Math.abs(coinY - centerPlayerY)
@@ -391,8 +424,8 @@ updateHUD = (event, gameState) => {
   render () {
     return ( 
       <canvas 
-        width={640} 
-        height={480} 
+        width={WIDTH} 
+        height={HEIGHT} 
         style={{
           border: '1px solid red',
           background: 'darkgrey'
