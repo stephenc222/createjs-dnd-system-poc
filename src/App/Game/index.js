@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 
 import { 
+  centerText,
   createText, 
   pascalCase 
 } from '../util'
@@ -45,7 +46,7 @@ const gameState = {
   player: null,
   coins: [],
   score: 0,
-  timer: 100,
+  timer: 5,
   paused: false,
   moveLeft: false,
   moveRight: false,
@@ -195,16 +196,13 @@ class Game extends Component {
     const titleText = 'Coin Grabber - TITLE'
     const subtitleText = 'Coin Grabber - subtitle'
 
-    const {width: titleTextLength} = this.ctx.measureText(titleText)
-    const {width: subTitleTextLength} = this.ctx.measureText(subtitleText)
-
     const titleTextObj = createText(
-      WIDTH / 2 - titleTextLength, 
+      centerText(this.ctx, WIDTH, titleText), 
       HEIGHT / 2 - 50, 
       titleText
     )
     const subTitleTextObj = createText(
-      WIDTH / 2 - subTitleTextLength, 
+      centerText(this.ctx, WIDTH, subtitleText), 
       HEIGHT / 2, 
       subtitleText
     )
@@ -297,16 +295,13 @@ class Game extends Component {
     const titleText = 'GAME OVER - TITLE'
     const subtitleText = 'GAME OVER - subtitle'
 
-    const {width: titleTextLength} = this.ctx.measureText(titleText)
-    const {width: subTitleTextLength} = this.ctx.measureText(subtitleText)
-
     const titleTextObj = createText(
-      WIDTH / 2 - titleTextLength, 
+      centerText(this.ctx, WIDTH, titleText), 
       HEIGHT / 2 - 50, 
       titleText
     )
     const subTitleTextObj = createText(
-      WIDTH / 2 - subTitleTextLength, 
+      centerText(this.ctx, WIDTH, subtitleText), 
       HEIGHT / 2, 
       subtitleText
     )

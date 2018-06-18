@@ -15,3 +15,9 @@ export const pascalCase = (input) => {
   const name = input.replace(/-/g, '')
   return name[0].toLocaleUpperCase() + name.substr(1,name.length)
 }
+
+// horizontal text centering
+export const centerText = (ctx, width, text) => {
+  const {width: textLength} = ctx.measureText(text)
+  return Math.floor( width / 2 - textLength)
+}
