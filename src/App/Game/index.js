@@ -30,7 +30,8 @@ const KEY = {
   DOWN: 40,
   BACKSPACE: 8,
   DELETE: 46,
-  ENTER: 13
+  ENTER: 13,
+  P: 80
 }
 
 const CURSOR_KEYS = [
@@ -94,9 +95,11 @@ class Game extends Component {
     } else if (isKey(KEY.DOWN)) {
       gameState.isMoving = true
       gameState.moveDown = true
-    } if (isKey(KEY.UP)) {
+    } else if (isKey(KEY.UP)) {
       gameState.isMoving = true      
       gameState.moveUp = true
+    } else if (isKey(KEY.P)) {
+      gameState.paused = !gameState.paused
     }
   }
 
@@ -214,7 +217,7 @@ class Game extends Component {
     gameState.stage.update()
   }
 
-  titleUpdate = (event,gameState) => {
+  titleUpdate = (event, gameState) => {
     // TODO: update Title Scene
     gameState.stage.update()
   }
@@ -316,7 +319,7 @@ class Game extends Component {
     gameState.stage.update()
   }
 
-  gameOverUpdate = () => {}
+  gameOverUpdate = (event, gameState) => {}
 
   gameOverExit = () => {}
 
@@ -324,15 +327,24 @@ class Game extends Component {
     // this[`handle${pascalCase(sceneName)}Event`](event)
   }
 
+  componentWillUnmount() {
+    this.Ticker = null
+    gameState.scene = null
+    gameState.stage = null
+
+    window.document.removeEventListener('keydown', this.onKeyDown)
+    window.document.removeEventListener('keyup', this.onKeyUp)
+    window.document.removeEventListener('keypress', this.onKeyPress)
+  }
 
   componentDidMount() {
     // game init stuff
     this.stage = new Stage(this.gameCanvas)
     this.ctx = this.stage.canvas.getContext('2d')
 
-    window.document.onkeydown = this.onKeyDown;
-    window.document.onkeyup = this.onKeyUp;
-    window.document.onkeypress = this.onKeyPress;
+    window.document.addEventListener('keydown', this.onKeyDown)
+    window.document.addEventListener('keyup', this.onKeyUp)
+    window.document.addEventListener('keypress', this.onKeyPress)
 
     this.Ticker.timingMode = Ticker.RAF_SYNCHED;
     this.Ticker.framerate = 40;
@@ -428,13 +440,9 @@ updateHUD = (event, gameState) => {
         height={HEIGHT} 
         style={{
           border: '1px solid red',
-          background: 'darkgrey'
+          background: 'lightgrey'
         }} 
         ref={(elem => this.gameCanvas = elem)}
-        onClick={this.togglePause}
-        onKeyDown={this.onKeyDown}
-        onKeyPress={this.onKeyPress}
-        onKeyUp={this.onKeyUp}
       /> 
     )
   }
