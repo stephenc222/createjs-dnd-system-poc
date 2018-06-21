@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import ReactDOM from 'react-dom'
 
 import { 
   centerText,
@@ -12,9 +11,12 @@ const {
   Container,
   Shape,
   Ticker,
-  Text
+  Bitmap,
+  Text,
+  LoadQueue,
 } = window.createjs
 
+const STAR_PNG_FILE = './star_particle.png'
 const NUM_COINS = 5
 const COIN_RADIUS = 20
 const PLAYER_WIDTH = 50
@@ -42,11 +44,20 @@ const CURSOR_KEYS = [
   KEY.RIGHT
 ]
 
+const handleComplete = () => {
+  const image = queue.getResult('starID');
+  document.body.appendChild(image);
+}
+
+const queue = new LoadQueue();
+queue.on('complete', handleComplete, this);
+queue.loadManifest([{ id: 'starID', src: STAR_PNG_FILE }]);
+
 const gameState = {
   player: null,
   coins: [],
   score: 0,
-  timer: 5,
+  timer: 100,
   paused: false,
   moveLeft: false,
   moveRight: false,
@@ -55,6 +66,7 @@ const gameState = {
   isMoving: false,
   sceneName: 'title'
 }
+
 
 // main game Canvas container, class for context access
 class Game extends Component {
@@ -137,12 +149,15 @@ class Game extends Component {
     // create the ball
     const coinShape = new Shape()
     const coin = new Container()
+    const particleImg = queue.getResult('starID')
+    const bitmap = new Bitmap(particleImg);
 
-    coinShape.graphics.beginFill("yellow").drawCircle(0, 0, COIN_RADIUS)
+    coinShape.graphics.beginFill('yellow').drawCircle(0, 0, COIN_RADIUS)
     coinShape.x = 0
     coinShape.y = 0
 
     coin.addChild(coinShape)
+    coin.addChild(bitmap)
     return coin
   }
 
@@ -150,7 +165,7 @@ class Game extends Component {
     const playerShape = new Shape()
     const player = new Container()
 
-    playerShape.graphics.beginFill("blue").drawRect(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT)
+    playerShape.graphics.beginFill('blue').drawRect(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT)
     playerShape.x = 0 
     playerShape.y = 0
     
@@ -254,13 +269,16 @@ class Game extends Component {
     gameState.coins.forEach( (coin, index) => {
       let x = Math.floor(Math.random() * (this.gameCanvas.width - COIN_RADIUS * 2)) + COIN_RADIUS
       let y = Math.floor(Math.random() * (this.gameCanvas.height - COIN_RADIUS * 2)) + COIN_RADIUS
+      // 0 --> yellow circle
+      // 1 --> star png image
       coin.children[0].x = x
       coin.children[0].y = y
+      coin.children[1].x = x
+      coin.children[1].y = y
       // TODO: quick debug trick for helping with coin detection
       const text = createText(x, y, `${index}`)
       coin.addChild(text)
     })
-
   }
   playUpdate = (event, gameState) => {
     if (!gameState.paused) {
@@ -355,11 +373,11 @@ class Game extends Component {
     this.Ticker.on("tick", (event) => masterTick(event))
   }
 
-updateHUD = (event, gameState) => {
-  gameState.timer -= event.delta/1000;
-  this.timerText.text =  Math.trunc(gameState.timer)
-  this.scoreText.text =  gameState.score
-}
+  updateHUD = (event, gameState) => {
+    gameState.timer -= event.delta / 1000;
+    this.timerText.text = Math.trunc(gameState.timer)
+    this.scoreText.text = gameState.score
+  }
 
   // the gameState is passed as a shallow copied object, not deep copied
   // so relying on maintained references works
