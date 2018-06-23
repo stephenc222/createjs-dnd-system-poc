@@ -112,7 +112,7 @@ class Game extends Component {
       gameState.isMoving = true      
       gameState.moveUp = true
     } else if (isKey(KEY.P)) {
-      gameState.paused = !gameState.paused
+      this.togglePause()
     }
   }
 
