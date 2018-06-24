@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-
+import ParticleSystem from './ParticleSystem'
 import { 
   centerText,
   createText, 
@@ -11,12 +11,9 @@ const {
   Container,
   Shape,
   Ticker,
-  Bitmap,
   Text,
-  LoadQueue,
 } = window.createjs
 
-const STAR_PNG_FILE = './star_particle.png'
 const NUM_COINS = 5
 const COIN_RADIUS = 20
 const PLAYER_WIDTH = 50
@@ -44,15 +41,6 @@ const CURSOR_KEYS = [
   KEY.RIGHT
 ]
 
-const handleComplete = () => {
-  const image = queue.getResult('starID');
-  document.body.appendChild(image);
-}
-
-const queue = new LoadQueue();
-queue.on('complete', handleComplete, this);
-queue.loadManifest([{ id: 'starID', src: STAR_PNG_FILE }]);
-
 const gameState = {
   player: null,
   coins: [],
@@ -64,13 +52,12 @@ const gameState = {
   moveDown: false,
   moveUp: false,
   isMoving: false,
-  sceneName: 'title'
+  sceneName: 'title',
+  particleLife: 5
 }
-
 
 // main game Canvas container, class for context access
 class Game extends Component {
-
   constructor(props) {
     super(props)
     this.Ticker = Ticker
@@ -149,15 +136,12 @@ class Game extends Component {
     // create the ball
     const coinShape = new Shape()
     const coin = new Container()
-    const particleImg = queue.getResult('starID')
-    const bitmap = new Bitmap(particleImg);
 
     coinShape.graphics.beginFill('yellow').drawCircle(0, 0, COIN_RADIUS)
     coinShape.x = 0
     coinShape.y = 0
 
     coin.addChild(coinShape)
-    coin.addChild(bitmap)
     return coin
   }
 
@@ -251,7 +235,10 @@ class Game extends Component {
     this.scoreText = createText(30, 30, gameState.score)
     this.timerText = createText(30, 50, gameState.timer)
 
+    const particleList = ParticleSystem.createParticles(10)
+
     const scene = new Container()
+    scene.addChild(particleList)
     scene.addChild(player)
     this.addRandomCoins(scene)
     scene.mouseChildren = true
@@ -270,11 +257,8 @@ class Game extends Component {
       let x = Math.floor(Math.random() * (this.gameCanvas.width - COIN_RADIUS * 2)) + COIN_RADIUS
       let y = Math.floor(Math.random() * (this.gameCanvas.height - COIN_RADIUS * 2)) + COIN_RADIUS
       // 0 --> yellow circle
-      // 1 --> star png image
       coin.children[0].x = x
       coin.children[0].y = y
-      coin.children[1].x = x
-      coin.children[1].y = y
       // TODO: quick debug trick for helping with coin detection
       const text = createText(x, y, `${index}`)
       coin.addChild(text)
@@ -285,6 +269,17 @@ class Game extends Component {
       if (gameState.isMoving) {
         this.movePlayer(gameState)
         this.checkCollision(gameState, gameState.scene)
+      }
+
+      if (gameState.showParticles) {
+        // TODO: cleanup: particle list === gameState.scene.children[0]
+        const particleList = gameState.scene.children[0]
+        particleList.visible = true
+        ParticleSystem.updateParticles(particleList)
+        gameState.particleLife -= event.delta / 1000
+        if (gameState.particleLife <= 0) {
+          gameState.scene.children[0].visible = false
+        }
       }
       this.updateHUD(event, gameState)
 
@@ -359,6 +354,8 @@ class Game extends Component {
     window.document.addEventListener('keyup', this.onKeyUp)
     window.document.addEventListener('keypress', this.onKeyPress)
 
+    // init Particle System
+    ParticleSystem.init()
     this.Ticker.timingMode = Ticker.RAF_SYNCHED;
     this.Ticker.framerate = 40;
 
@@ -431,6 +428,7 @@ class Game extends Component {
 
       if (distX <= (PLAYER_WIDTH / 2)) {
         ++gameState.score
+        gameState.showParticles = true
         scene.removeChild(coin)
         gameState.coins.splice(index, 1) 
         return 
@@ -438,11 +436,11 @@ class Game extends Component {
       
       if (distY <= (PLAYER_HEIGHT / 2)) { 
         ++gameState.score
+        gameState.showParticles = true
         scene.removeChild(coin)
         gameState.coins.splice(index, 1)
         return 
       }
-      
     })
   }
 
