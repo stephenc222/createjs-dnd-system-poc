@@ -14,7 +14,9 @@ const {
   Text,
 } = window.createjs
 
+const PARTICLE_SPEED = 15
 const NUM_COINS = 5
+const NUM_PARTICLES = 25
 const COIN_RADIUS = 20
 const PLAYER_WIDTH = 50
 const PLAYER_HEIGHT = 50
@@ -170,8 +172,9 @@ class Game extends Component {
   }
 
   /**
-   * concatenates sceneName param to create reference correct scene to enter
+   * concatenates sceneName param to create reference to correct scene to enter
    * @param {string} sceneName - string used to look up which scene to enter
+   * @returns {void}
    */
   enterScene = (sceneName) => {
     gameState.sceneName = sceneName
@@ -235,7 +238,7 @@ class Game extends Component {
     this.scoreText = createText(30, 30, gameState.score)
     this.timerText = createText(30, 50, gameState.timer)
 
-    const particleList = ParticleSystem.createParticles(10)
+    const particleList = ParticleSystem.createParticles(NUM_PARTICLES)
 
     const scene = new Container()
     scene.addChild(particleList)
@@ -275,7 +278,7 @@ class Game extends Component {
         // TODO: cleanup: particle list === gameState.scene.children[0]
         const particleList = gameState.scene.children[0]
         particleList.visible = true
-        ParticleSystem.updateParticles(particleList)
+        ParticleSystem.updateParticles(particleList, PARTICLE_SPEED)
         gameState.particleLife -= event.delta / 1000
         if (gameState.particleLife <= 0) {
           gameState.scene.children[0].visible = false
@@ -429,6 +432,8 @@ class Game extends Component {
       if (distX <= (PLAYER_WIDTH / 2)) {
         ++gameState.score
         gameState.showParticles = true
+        // FIXME: hardcoded "assumed" that child 0 is particleList
+        ParticleSystem.setParticleCoords(scene.children[0], playerX, playerY)
         scene.removeChild(coin)
         gameState.coins.splice(index, 1) 
         return 
@@ -437,6 +442,8 @@ class Game extends Component {
       if (distY <= (PLAYER_HEIGHT / 2)) { 
         ++gameState.score
         gameState.showParticles = true
+        // FIXME: hardcoded "assumed" that child 0 is particleList
+        ParticleSystem.setParticleCoords(scene.children[0], playerX, playerY)
         scene.removeChild(coin)
         gameState.coins.splice(index, 1)
         return 
