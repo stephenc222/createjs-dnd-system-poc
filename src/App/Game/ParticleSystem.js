@@ -5,6 +5,8 @@ const {
 } = window.createjs
 
 const STAR_PNG_FILE = './star_particle.png'
+const INIT_X = -100
+const INIT_Y = 100
 
 const radPerParticle = (particleIndex, numParticles) => particleIndex * (2 * Math.PI / numParticles)
 
@@ -33,6 +35,13 @@ const ParticleSystem = {
     })
   },
 
+  resetParticles(particlesList) {
+    particlesList.children.forEach( particle => {
+      particle.x = INIT_X
+      particle.y = INIT_Y
+    })
+  },
+
   createParticles(numParticles) {
     // for now, creates particles of the same img
     const particleList = new Container()
@@ -42,10 +51,10 @@ const ParticleSystem = {
     for (let i = 0; i < numParticles; ++i) {
       const particle = baseBitmap.clone()
       // TODO: hardcoded coord right now off canvas
-      particle.x = -100 //5 * i
-      particle.y = -100 //5 * i
-      particle.scaleX = 0.5//i / 5
-      particle.scaleY = 0.5//i / 5
+      particle.x = INIT_X
+      particle.y = INIT_Y
+      particle.scaleX = 0.5
+      particle.scaleY = 0.5
       particleList.addChild(particle)
     }
     return particleList

@@ -14,7 +14,15 @@ const {
   Text,
 } = window.createjs
 
+const {
+  resetParticles,
+  updateParticles,
+  setParticleCoords,
+  createParticles
+} = ParticleSystem
+
 const PARTICLE_SPEED = 15
+const PARTICLE_LIFE = 5
 const NUM_COINS = 5
 const NUM_PARTICLES = 25
 const COIN_RADIUS = 20
@@ -82,10 +90,13 @@ class Game extends Component {
     if (gameState.sceneName === 'title') {
       if(isKey(KEY.ENTER)) {
         this.titleExit()
-        this.playEnter()
-        gameState.sceneName = 'play'
+        this.difficultySelectEnter()
+        gameState.sceneName = 'difficultySelect'
       }
       return
+    } else if (gameState.sceneName === 'difficultySelect') {
+      this.difficultySelectExit()
+      this.playEnter()
     }
 
     if (isKey(KEY.LEFT)) {
@@ -188,7 +199,6 @@ class Game extends Component {
   titleHandleEvent = (event) => {}
   
   titleEnter = () => {
-    // TODO: enter Title Scene
     const {
       width: WIDTH,
       height: HEIGHT
@@ -227,6 +237,43 @@ class Game extends Component {
     this.stage.removeChild(gameState.scene)
   }
 
+  difficultySelectUpdate = (event, gameState) => {
+    gameState.stage.update()
+  }
+
+  difficultySelectExit = () => {
+    this.stage.removeChild(gameState.scene)
+  }
+
+  difficultySelectEnter = () => {
+    const {
+      width: WIDTH,
+      height: HEIGHT
+    } = this.gameCanvas
+
+    const stage = this.stage
+    const titleText = 'Coin Grabber - DIFFICULTY SELECT'
+    const subtitleText = 'Coin Grabber - DIFFICULTY SELECT'
+
+    const titleTextObj = createText(
+      centerText(this.ctx, WIDTH, titleText), 
+      HEIGHT / 2 - 50, 
+      titleText
+    )
+    const subTitleTextObj = createText(
+      centerText(this.ctx, WIDTH, subtitleText), 
+      HEIGHT / 2, 
+      subtitleText
+    )
+    const scene = new Container()
+    scene.addChild(titleTextObj)
+    scene.addChild(subTitleTextObj)
+    gameState.scene = scene
+    stage.addChild(scene)
+    gameState.stage = stage
+    gameState.stage.update()
+  }
+
   playEnter = () => {
 
     const stage = this.stage
@@ -238,7 +285,7 @@ class Game extends Component {
     this.scoreText = createText(30, 30, gameState.score)
     this.timerText = createText(30, 50, gameState.timer)
 
-    const particleList = ParticleSystem.createParticles(NUM_PARTICLES)
+    const particleList = createParticles(NUM_PARTICLES)
 
     const scene = new Container()
     scene.addChild(particleList)
@@ -278,10 +325,13 @@ class Game extends Component {
         // TODO: cleanup: particle list === gameState.scene.children[0]
         const particleList = gameState.scene.children[0]
         particleList.visible = true
-        ParticleSystem.updateParticles(particleList, PARTICLE_SPEED)
+        updateParticles(particleList, PARTICLE_SPEED)
         gameState.particleLife -= event.delta / 1000
         if (gameState.particleLife <= 0) {
           gameState.scene.children[0].visible = false
+          gameState.particleLife = PARTICLE_LIFE
+          resetParticles(particleList)
+          gameState.showParticles = false
         }
       }
       this.updateHUD(event, gameState)
@@ -433,7 +483,7 @@ class Game extends Component {
         ++gameState.score
         gameState.showParticles = true
         // FIXME: hardcoded "assumed" that child 0 is particleList
-        ParticleSystem.setParticleCoords(scene.children[0], playerX, playerY)
+        setParticleCoords(scene.children[0], playerX, playerY)
         scene.removeChild(coin)
         gameState.coins.splice(index, 1) 
         return 
@@ -443,7 +493,7 @@ class Game extends Component {
         ++gameState.score
         gameState.showParticles = true
         // FIXME: hardcoded "assumed" that child 0 is particleList
-        ParticleSystem.setParticleCoords(scene.children[0], playerX, playerY)
+        setParticleCoords(scene.children[0], playerX, playerY)
         scene.removeChild(coin)
         gameState.coins.splice(index, 1)
         return 
