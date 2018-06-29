@@ -1,5 +1,10 @@
 import React, { Component } from 'react'
 import ParticleSystem from './ParticleSystem'
+import {
+  createDndContext,
+  createDndDragSource,
+  createDndDropTarget
+} from './DndSystem'
 import { 
   centerText,
   createText, 
@@ -178,6 +183,8 @@ class Game extends Component {
     shape.graphics.beginFill(color).drawRect(x, y, width, height)
     shape.x = x
     shape.y = y
+    shape.regX = x
+    shape.regY = y
     
     container.addChild(shape)
     return container
@@ -281,7 +288,46 @@ class Game extends Component {
       HEIGHT / 2, 
       subtitleText
     )
+
+    // **** START OF POC ****
     const scene = new Container()
+    // add the context display object to the scene
+    const contextObj = this.createContainerWithRectShape({
+      color: 'lightgreen', 
+      x: 0, 
+      y: 0, 
+      width: WIDTH, 
+      height: HEIGHT
+    })
+
+    const wrapContextObj = createDndContext(contextObj)
+
+    // add the dragSource display object to the context
+    const dragSourceObj = this.createContainerWithRectShape({
+      color: 'orange', 
+      x: 50, 
+      y: 50, 
+      width: 50, 
+      height: 50
+    })
+
+    const wrapDragSourceObj = createDndDragSource(dragSourceObj)
+
+    
+    // add the dropTarget display object to the context
+    const dropTargetObj = this.createContainerWithRectShape({
+      color: 'yellow', 
+      x: 150, 
+      y: 150, 
+      width: 200, 
+      height: 100
+    })
+
+    const wrapDropTargetObj = createDndDropTarget(dropTargetObj)
+
+    wrapContextObj.addChild(wrapDragSourceObj)
+    wrapContextObj.addChild(wrapDropTargetObj)
+    scene.addChild(wrapContextObj)
     scene.addChild(titleTextObj)
     scene.addChild(subTitleTextObj)
     gameState.scene = scene
