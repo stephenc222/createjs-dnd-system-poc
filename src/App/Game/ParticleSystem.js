@@ -7,6 +7,8 @@ const {
 const STAR_PNG_FILE = './star_particle.png'
 const INIT_X = -100
 const INIT_Y = 100
+const INIT_SCALE_X = 0.5
+const INIT_SCALE_Y = 0.5
 
 const radPerParticle = (particleIndex, numParticles) => particleIndex * (2 * Math.PI / numParticles)
 
@@ -53,8 +55,8 @@ const ParticleSystem = {
       // TODO: hardcoded coord right now off canvas
       particle.x = INIT_X
       particle.y = INIT_Y
-      particle.scaleX = 0.5
-      particle.scaleY = 0.5
+      particle.scaleX = INIT_SCALE_X
+      particle.scaleY = INIT_SCALE_Y
       particleList.addChild(particle)
     }
     return particleList

@@ -91,12 +91,15 @@ class Game extends Component {
       if(isKey(KEY.ENTER)) {
         this.titleExit()
         this.difficultySelectEnter()
-        gameState.sceneName = 'difficultySelect'
       }
       return
     } else if (gameState.sceneName === 'difficultySelect') {
-      this.difficultySelectExit()
-      this.playEnter()
+      // TODO: disabling play scene enter for work on drag and drop POC
+      // keyDown events aren't going to be handled by drag and drop either
+      // this.difficultySelectExit()
+      // this.playEnter()
+      return
+
     }
 
     if (isKey(KEY.LEFT)) {
@@ -158,16 +161,26 @@ class Game extends Component {
     return coin
   }
 
-  createPlayer() {
-    const playerShape = new Shape()
-    const player = new Container()
+  createContainerWithRectShape({
+    color = 'blue',
+    x = 0,
+    y = 0,
+    width = null,
+    height = null
+  }) {
+    if (!width || !height) {
+      throw new Error('createContainerWithRectShape: did not supply width or height')
+    }
 
-    playerShape.graphics.beginFill('blue').drawRect(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT)
-    playerShape.x = 0 
-    playerShape.y = 0
+    const shape = new Shape()
+    const container = new Container()
+
+    shape.graphics.beginFill(color).drawRect(x, y, width, height)
+    shape.x = x
+    shape.y = y
     
-    player.addChild(playerShape)
-    return player
+    container.addChild(shape)
+    return container
   }
   
   addRandomCoins = (scene) => {    
@@ -251,17 +264,20 @@ class Game extends Component {
       height: HEIGHT
     } = this.gameCanvas
 
-    const stage = this.stage
-    const titleText = 'Coin Grabber - DIFFICULTY SELECT'
-    const subtitleText = 'Coin Grabber - DIFFICULTY SELECT'
+    gameState.sceneName = 'difficultySelect'
 
+    const stage = this.stage
+    const titleText = 'SELECT'
+    const subtitleText = 'DIFFICULTY'
+
+    // TODO: hardcoded offsets for now
     const titleTextObj = createText(
-      centerText(this.ctx, WIDTH, titleText), 
-      HEIGHT / 2 - 50, 
+      centerText(this.ctx, WIDTH, titleText) - 200, 
+      HEIGHT / 2, 
       titleText
     )
     const subTitleTextObj = createText(
-      centerText(this.ctx, WIDTH, subtitleText), 
+      centerText(this.ctx, WIDTH, subtitleText) + 200, 
       HEIGHT / 2, 
       subtitleText
     )
@@ -278,7 +294,13 @@ class Game extends Component {
 
     const stage = this.stage
 
-    const player = this.createPlayer()
+    const player = this.createContainerWithRectShape({
+      color: 'blue',
+      x: 0,
+      y: 0,
+      width: PLAYER_WIDTH,
+      height: PLAYER_HEIGHT
+    })
     gameState.player = player
   
     // set up HUD
