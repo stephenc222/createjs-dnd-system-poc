@@ -291,18 +291,8 @@ class Game extends Component {
 
     // **** START OF POC ****
     const scene = new Container()
-    // add the context display object to the scene
-    const contextObj = this.createContainerWithRectShape({
-      color: 'lightgreen', 
-      x: 0, 
-      y: 0, 
-      width: WIDTH, 
-      height: HEIGHT
-    })
 
-    const wrapContextObj = createDndContext(contextObj)
-
-    // add the dragSource display object to the context
+    // create the dragSource display object to the context
     const dragSourceObj = this.createContainerWithRectShape({
       color: 'orange', 
       x: 50, 
@@ -314,7 +304,7 @@ class Game extends Component {
     const wrapDragSourceObj = createDndDragSource(dragSourceObj)
 
     
-    // add the dropTarget display object to the context
+    // create the dropTarget display object to the context
     const dropTargetObj = this.createContainerWithRectShape({
       color: 'yellow', 
       x: 150, 
@@ -325,8 +315,21 @@ class Game extends Component {
 
     const wrapDropTargetObj = createDndDropTarget(dropTargetObj)
 
-    wrapContextObj.addChild(wrapDragSourceObj)
-    wrapContextObj.addChild(wrapDropTargetObj)
+    // create the context display object to the scene
+    const contextObj = this.createContainerWithRectShape({
+      color: 'lightgreen', 
+      x: 0, 
+      y: 0, 
+      width: WIDTH, 
+      height: HEIGHT
+    })
+
+    const wrapContextObj = createDndContext(
+      contextObj, 
+      wrapDragSourceObj, 
+      wrapDropTargetObj
+    )
+
     scene.addChild(wrapContextObj)
     scene.addChild(titleTextObj)
     scene.addChild(subTitleTextObj)
