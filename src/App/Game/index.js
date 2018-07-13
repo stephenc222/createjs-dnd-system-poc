@@ -302,7 +302,6 @@ class Game extends Component {
     })
 
     const wrapDragSourceObj = createDndDragSource(dragSourceObj)
-
     
     // create the dropTarget display object to the context
     const dropTargetObj = this.createContainerWithRectShape({
@@ -324,10 +323,27 @@ class Game extends Component {
       height: HEIGHT
     })
 
+    // TODO: add in-depth documentation on how to use these callbacks and what they expect
+    const dragEventCallbacks = {
+      onDragStart: ({dragSourceRef, dropTargetRef}) => {
+        console.warn('onDragStart:', {dragSourceRef, dropTargetRef})
+      },
+      onDragEnd: ({dragSourceRef, dropTargetRef}) => {
+        console.warn('onDragEnd:', {dragSourceRef, dropTargetRef})
+      },
+      onHover: ({dragSourceRef, dropTargetRef}, hoversOnTarget) => {
+        console.warn('onHover:', {dragSourceRef, dropTargetRef}, hoversOnTarget)
+      },
+      onDrop: ({dragSourceRef, dropTargetRef}, didDropOnTarget) => {
+        console.warn('onDrop:', {dragSourceRef, dropTargetRef}, didDropOnTarget)
+      },
+    }
+
     const wrapContextObj = createDndContext(
       contextObj, 
       wrapDragSourceObj, 
-      wrapDropTargetObj
+      wrapDropTargetObj,
+      {...dragEventCallbacks}
     )
 
     scene.addChild(wrapContextObj)
