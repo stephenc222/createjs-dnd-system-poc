@@ -6,7 +6,7 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <div style={{padding: 30}}> Coin Grabber Demo </div>
+        <div style={{padding: 30}}> Createjs Dnd System Demo </div>
         <Game/>
       </div>
     );
