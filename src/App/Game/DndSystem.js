@@ -111,10 +111,10 @@ const createDndContext = (
   const contextObj = displayObject.clone(true)
   contextObj.dndType = DND_CONTEXT
 
-  connectCB(_internalState, onDragStart)
-  connectCB(_internalState, onDragEnd)
-  connectCB(_internalState, onHover)
-  connectCB(_internalState, onDrop)
+  connectCB(onDragStart)
+  connectCB(onDragEnd)
+  connectCB(onHover)
+  connectCB(onDrop)
 
   dragSourceObj.addEventListener("pressmove", handlePressMove)
   dragSourceObj.addEventListener("pressup", handlePressUp)
