@@ -90,7 +90,7 @@ const handlePressUp = (event) => {
 }
 
 const createDndContext = (
-  contextObj,
+  displayObject,
   dragSourceObj,
   dropTargetObj,
   {
@@ -107,7 +107,8 @@ const createDndContext = (
     throw new Error('The DragSource or the DropTarget params do not have valid dndTypes')
   }
 
-  // add a dndType flag to the display object
+  // add a dndType flag to the cloned display object
+  const contextObj = displayObject.clone(true)
   contextObj.dndType = DND_CONTEXT
 
   connectCB(_internalState, onDragStart)
@@ -132,14 +133,14 @@ const createDndContext = (
 
 const createDndDragSource = (displayObject) => {
   // add a dndType flag to the display object
-  const dragSource = displayObject
+  const dragSource = displayObject.clone(true)
   dragSource.dndType = DND_DRAG_SOURCE
   return dragSource
 }
 
 const createDndDropTarget = (displayObject) => {
   // add a dndType flag to the display object
-  const dropTarget = displayObject
+  const dropTarget = displayObject.clone(true)
   dropTarget.dndType = DND_DROP_TARGET
   return dropTarget
 }
