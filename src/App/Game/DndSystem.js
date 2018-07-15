@@ -24,6 +24,9 @@ const _internalState = {
   }
 }
 
+// attach drag event callbacks
+const connectCB = cb => cb && (_internalState[cb.name] = cb)
+
 // TODO: maybe add a config setting to "auto center" mouse on drag source
 const handlePressMove = (event) => {
   // first pressMove event here  - cache initial offset for this drag event in progress
@@ -34,19 +37,22 @@ const handlePressMove = (event) => {
   } = event
 
   // maintains shallow reference to _internalState
-  const dragSourceRef = _internalState.dragSourceRef
-  const dropTargetRef = _internalState.dropTargetRef
+  const {
+    dragSourceRef,
+    dropTargetRef,
+    initialOffset,
+  } = _internalState
 
   if (!_internalState.isMouseMoving) {
-    _internalState.initialOffset.x = target.x - stageX
-    _internalState.initialOffset.y = target.y - stageY
+    initialOffset.x = target.x - stageX
+    initialOffset.y = target.y - stageY
     _internalState.onDragStart({ dragSourceRef, dropTargetRef })
   }
   _internalState.isMouseMoving = true
 
-  target.x = stageX + _internalState.initialOffset.x
-  target.y = stageY + _internalState.initialOffset.y
-  if(_internalState.dropTargetRef.hitTest(target.x, target.y)) {
+  target.x = stageX + initialOffset.x
+  target.y = stageY + initialOffset.y
+  if(dropTargetRef.hitTest(target.x, target.y)) {
     // hovers on target is true here
     _internalState.onHover({ dragSourceRef,dropTargetRef },true)
   } else {
@@ -56,10 +62,12 @@ const handlePressMove = (event) => {
 
 const handleDrop = ({targetX, targetY}) => {
   // maintains shallow reference to _internalState
-  const dragSourceRef = _internalState.dragSourceRef
-  const dropTargetRef = _internalState.dropTargetRef
+  const {
+    dragSourceRef,
+    dropTargetRef
+  } = _internalState
   
-  if(_internalState.dropTargetRef.hitTest(targetX, targetY)) {
+  if(dropTargetRef.hitTest(targetX, targetY)) {
     // drops on target is true here
     _internalState.onDrop({ dragSourceRef, dropTargetRef }, true)
   } else {
@@ -68,9 +76,9 @@ const handleDrop = ({targetX, targetY}) => {
 }
 
 const handlePressUp = (event) => {
+  event.preventDefault()
   const dragSourceRef = _internalState.dragSourceRef
   const dropTargetRef = _internalState.dropTargetRef
-  event.preventDefault()
   _internalState.isMouseMoving = false
 
   // NOTE: dragEnd called before onDrop
@@ -122,25 +130,18 @@ const createDndContext = (
   return contextObj
 }
 
-// attach drag event callbacks
-const connectCB = (_internalState, cb) => {
-  if (cb) {
-    // name is a read-only property of functions to get it's name when created
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/name
-    _internalState[cb.name] = cb
-  }
-}
-
 const createDndDragSource = (displayObject) => {
   // add a dndType flag to the display object
-  displayObject.dndType = DND_DRAG_SOURCE
-  return displayObject
+  const dragSource = displayObject
+  dragSource.dndType = DND_DRAG_SOURCE
+  return dragSource
 }
 
 const createDndDropTarget = (displayObject) => {
   // add a dndType flag to the display object
-  displayObject.dndType = DND_DROP_TARGET
-  return displayObject
+  const dropTarget = displayObject
+  dropTarget.dndType = DND_DROP_TARGET
+  return dropTarget
 }
 
 export {
