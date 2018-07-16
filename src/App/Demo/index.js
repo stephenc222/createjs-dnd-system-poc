@@ -7,7 +7,6 @@ import {
 import { 
   centerText,
   createText, 
-  pascalCase 
 } from '../util'
 
 const {
@@ -15,7 +14,6 @@ const {
   Container,
   Shape,
   Ticker,
-  Text,
 } = window.createjs
 
 const WIDTH = 640
@@ -91,7 +89,6 @@ class Demo extends Component {
       // this.difficultySelectExit()
       // this.playEnter()
       return
-
     }
 
     if (isKey(KEY.LEFT)) {
@@ -113,7 +110,6 @@ class Demo extends Component {
 
   onKeyUp = (event) => {
     const isKey = (keyMatch) => event.keyCode === keyMatch
-
     if (gameState.sceneName === 'play') {
       if (isKey(KEY.LEFT)) {
         gameState.moveLeft = false
@@ -124,7 +120,6 @@ class Demo extends Component {
       } if (isKey(KEY.UP)) {
         gameState.moveUp = false
       }
-  
       // if none of these are true, then stop moving
       if (!gameState.moveDown && !gameState.moveLeft && !gameState.moveUp && !gameState.moveRight) {
         gameState.isMoving = false
@@ -161,6 +156,8 @@ class Demo extends Component {
     shape.regY = y
     
     container.addChild(shape)
+    // NOTE: bounds are for now rectangular-based
+    container.setBounds(x,y,width,height)
     return container
   }
 
@@ -178,8 +175,6 @@ class Demo extends Component {
     this[`${sceneName}Exit`]()
   }
 
-  titleHandleEvent = (event) => {}
-  
   titleEnter = () => {
     const {
       width: WIDTH,
@@ -257,7 +252,6 @@ class Demo extends Component {
 
     const wrapDragSourceObj = createDndDragSource(dragSourceObj, {dndType: CUSTOM_DND_TYPE})
 
-    
     // create the dropTarget display object to the context
     const dropTargetObj = this.createContainerWithRectShape({
       color: 'yellow', 

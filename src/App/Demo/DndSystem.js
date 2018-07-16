@@ -19,6 +19,9 @@ const _internalState = {
   }
 }
 
+// checks DndTypes of dragSource and dropTarget objects
+const checkDndType = (dragSource, dropTarget) => dragSource.dndType === dropTarget.dndType
+
 // attach drag event callbacks
 const connectCB = cb => cb && (_internalState[cb.name] = cb)
 
@@ -37,7 +40,7 @@ const handlePressMove = (event) => {
     dropTargetRef,
     initialOffset,
   } = _internalState
-
+  
   if (!_internalState.isMouseMoving) {
     initialOffset.x = target.x - stageX
     initialOffset.y = target.y - stageY
@@ -47,7 +50,7 @@ const handlePressMove = (event) => {
 
   target.x = stageX + initialOffset.x
   target.y = stageY + initialOffset.y
-  if(dropTargetRef.hitTest(target.x, target.y)) {
+  if(dropTargetRef.hitTest(target.x, target.y) && checkDndType(dragSourceRef, dropTargetRef)) {
     // hovers on target is true here
     _internalState.onHover({ dragSourceRef,dropTargetRef },true)
   } else {
@@ -62,7 +65,7 @@ const handleDrop = ({targetX, targetY}) => {
     dropTargetRef
   } = _internalState
   
-  if(dropTargetRef.hitTest(targetX, targetY)) {
+  if(dropTargetRef.hitTest(targetX, targetY) && checkDndType(dragSourceRef, dropTargetRef)) {
     // drops on target is true here
     _internalState.onDrop({ dragSourceRef, dropTargetRef }, true)
   } else {
