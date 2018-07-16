@@ -5,11 +5,6 @@
  * 
  */
 
-// type constants
-const DND_CONTEXT = 'DND_CONTEXT'
-const DND_DRAG_SOURCE = 'DND_DRAG_SOURCE'
-const DND_DROP_TARGET = 'DND_DROP_TARGET'
-
 const _internalState = {
   onDragStart: () => {},
   onDragEnd: () => {},
@@ -97,19 +92,22 @@ const createDndContext = (
     onDragStart,
     onDragEnd,
     onHover,
-    onDrop
+    onDrop,
+    dndType
   } = {}
 ) => {
 
   // in case dndType was arbitrarily overwritten/removed
-  if (dragSourceObj.dndType !== DND_DRAG_SOURCE 
-  || dropTargetObj.dndType !== DND_DROP_TARGET) {
-    throw new Error('The DragSource or the DropTarget params do not have valid dndTypes')
+  if (dragSourceObj.dndType !== dndType 
+  || dropTargetObj.dndType !== dndType) {
+    console.warn('The DragSource or the DropTarget params do not have valid dndTypes')
+    console.warn('These objects have not been added to the context display object')
+    return displayObject
   }
 
   // add a dndType flag to the cloned display object
   const contextObj = displayObject.clone(true)
-  contextObj.dndType = DND_CONTEXT
+  contextObj.dndType = dndType
 
   connectCB(onDragStart)
   connectCB(onDragEnd)
@@ -131,17 +129,17 @@ const createDndContext = (
   return contextObj
 }
 
-const createDndDragSource = (displayObject) => {
+const createDndDragSource = (displayObject, {dndType}) => {
   // add a dndType flag to the display object
   const dragSource = displayObject.clone(true)
-  dragSource.dndType = DND_DRAG_SOURCE
+  dragSource.dndType = dndType
   return dragSource
 }
 
-const createDndDropTarget = (displayObject) => {
+const createDndDropTarget = (displayObject, {dndType}) => {
   // add a dndType flag to the display object
   const dropTarget = displayObject.clone(true)
-  dropTarget.dndType = DND_DROP_TARGET
+  dropTarget.dndType = dndType
   return dropTarget
 }
 

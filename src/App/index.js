@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Game from './Game'
+import Demo from './Demo'
 import './index.css'
 
 class App extends Component {
@@ -7,7 +7,7 @@ class App extends Component {
     return (
       <div className="App">
         <div style={{padding: 30}}> Createjs Dnd System Demo </div>
-        <Game/>
+        <Demo/>
       </div>
     );
   }

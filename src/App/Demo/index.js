@@ -21,6 +21,8 @@ const {
 const WIDTH = 640
 const HEIGHT = 480
 
+const CUSTOM_DND_TYPE = 'CUSTOM_DND_TYPE'
+
 const KEY = {
   END: 35,
   HOME: 36,
@@ -56,8 +58,8 @@ const gameState = {
   particleLife: 5
 }
 
-// main game Canvas container, class for context access
-class Game extends Component {
+// main demo Canvas container, class for context access
+class Demo extends Component {
   constructor(props) {
     super(props)
     this.Ticker = Ticker
@@ -235,7 +237,6 @@ class Game extends Component {
 
     const stage = this.stage
     const titleText = 'Drag the squares to the corresponding colored bin'
-    // const subtitleText = 'DIFFICULTY'
 
     const titleTextObj = createText(
       centerText(this.ctx, WIDTH, titleText), 
@@ -254,18 +255,19 @@ class Game extends Component {
       height: 50
     })
 
-    const wrapDragSourceObj = createDndDragSource(dragSourceObj)
+    const wrapDragSourceObj = createDndDragSource(dragSourceObj, {dndType: CUSTOM_DND_TYPE})
+
     
     // create the dropTarget display object to the context
     const dropTargetObj = this.createContainerWithRectShape({
       color: 'yellow', 
       x: 150, 
-      y: 150, 
+      y: 350, 
       width: 200, 
       height: 100
     })
 
-    const wrapDropTargetObj = createDndDropTarget(dropTargetObj)
+    const wrapDropTargetObj = createDndDropTarget(dropTargetObj, {dndType: CUSTOM_DND_TYPE})
 
     // create the context display object to the scene
     const contextObj = this.createContainerWithRectShape({
@@ -296,7 +298,10 @@ class Game extends Component {
       contextObj, 
       wrapDragSourceObj, 
       wrapDropTargetObj,
-      {...dragEventCallbacks}
+      {
+        dndType: CUSTOM_DND_TYPE,
+        ...dragEventCallbacks
+      }
     )
 
     scene.addChild(wrapContextObj)
@@ -354,4 +359,4 @@ class Game extends Component {
   }
 }
 
-export default Game
+export default Demo
