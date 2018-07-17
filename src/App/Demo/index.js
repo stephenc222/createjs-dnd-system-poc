@@ -83,28 +83,6 @@ class Demo extends Component {
         this.demoEnter()
       }
       return
-    } else if (gameState.sceneName === 'demo') {
-      // TODO: disabling play scene enter for work on drag and drop POC
-      // keyDown events aren't going to be handled by drag and drop either
-      // this.difficultySelectExit()
-      // this.playEnter()
-      return
-    }
-
-    if (isKey(KEY.LEFT)) {
-      gameState.isMoving = true
-      gameState.moveLeft = true
-    } else if (isKey(KEY.RIGHT)) {
-      gameState.isMoving = true
-      gameState.moveRight = true
-    } else if (isKey(KEY.DOWN)) {
-      gameState.isMoving = true
-      gameState.moveDown = true
-    } else if (isKey(KEY.UP)) {
-      gameState.isMoving = true      
-      gameState.moveUp = true
-    } else if (isKey(KEY.P)) {
-      this.togglePause()
     }
   }
 
@@ -119,10 +97,6 @@ class Demo extends Component {
         gameState.moveDown = false
       } if (isKey(KEY.UP)) {
         gameState.moveUp = false
-      }
-      // if none of these are true, then stop moving
-      if (!gameState.moveDown && !gameState.moveLeft && !gameState.moveUp && !gameState.moveRight) {
-        gameState.isMoving = false
       }
     }
   }
@@ -161,20 +135,6 @@ class Demo extends Component {
     return container
   }
 
-  /**
-   * concatenates sceneName param to create reference to correct scene to enter
-   * @param {string} sceneName - string used to look up which scene to enter
-   * @returns {void}
-   */
-  enterScene = (sceneName) => {
-    gameState.sceneName = sceneName
-    this[`${sceneName}Enter`]()
-  }
-
-  exitScene = (sceneName) => {
-    this[`${sceneName}Exit`]()
-  }
-
   titleEnter = () => {
     const {
       width: WIDTH,
@@ -204,18 +164,9 @@ class Demo extends Component {
     gameState.stage.update()
   }
 
-  titleUpdate = (event, gameState) => {
-    // TODO: update Title Scene
-    gameState.stage.update()
-  }
-
   titleExit = () => {
     // TODO: exit Title Scene
     this.stage.removeChild(gameState.scene)
-  }
-
-  demoUpdate = (event, gameState) => {
-    gameState.stage.update()
   }
 
   demoExit = () => {
@@ -280,8 +231,8 @@ class Demo extends Component {
       onDragEnd: ({dragSourceRef, dropTargetRef}) => {
         console.warn('onDragEnd:', {dragSourceRef, dropTargetRef})
       },
-      onHover: ({dragSourceRef, dropTargetRef}, hoversOnTarget) => {
-        console.warn('onHover:', {dragSourceRef, dropTargetRef}, hoversOnTarget)
+      onDragging: ({dragSourceRef, dropTargetRef}, hoversOnTarget) => {
+        console.warn('onDragging:', {dragSourceRef, dropTargetRef}, hoversOnTarget)
       },
       onDrop: ({dragSourceRef, dropTargetRef}, didDropOnTarget) => {
         console.warn('onDrop:', {dragSourceRef, dropTargetRef}, didDropOnTarget)
@@ -330,10 +281,9 @@ class Demo extends Component {
 
     this[`${gameState.sceneName}Enter`]()
     this.gameCanvas.focus()
-    // handle event then update scene state - pretty standard stuff
     const masterTick = (event) => {
       // gameState is a global
-      this[`${gameState.sceneName}Update`](event, gameState)
+      gameState.stage.update()
     }
     this.Ticker.on("tick", (event) => masterTick(event))
   }

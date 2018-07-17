@@ -8,7 +8,7 @@
 const _internalState = {
   onDragStart: () => {},
   onDragEnd: () => {},
-  onHover: () => {},
+  onDragging: () => {},
   onDrop: () => {},
   isMouseMoving: false,
   dragSourceRef: {},
@@ -50,37 +50,46 @@ const handlePressMove = (event) => {
 
   target.x = stageX + initialOffset.x
   target.y = stageY + initialOffset.y
-  if(dropTargetRef.hitTest(target.x, target.y) && checkDndType(dragSourceRef, dropTargetRef)) {
-    // hovers on target is true here
-    _internalState.onHover({ dragSourceRef,dropTargetRef },true)
-  } else {
-    _internalState.onHover({ dragSourceRef,dropTargetRef }, false)
-  }
+  _internalState.onDragging(
+    { 
+      dragSourceRef,
+      dropTargetRef 
+    },
+    // dragging on target is true here if compatible types and true hit test
+    !!checkDndType(dragSourceRef, dropTargetRef) && dropTargetRef.hitTest(target.x, target.y)
+  )
 }
 
 const handleDrop = ({targetX, targetY}) => {
   // maintains shallow reference to _internalState
   const {
     dragSourceRef,
-    dropTargetRef
+    dropTargetRef,
+    onDrop
   } = _internalState
   
-  if(dropTargetRef.hitTest(targetX, targetY) && checkDndType(dragSourceRef, dropTargetRef)) {
-    // drops on target is true here
-    _internalState.onDrop({ dragSourceRef, dropTargetRef }, true)
-  } else {
-    _internalState.onDrop({ dragSourceRef, dropTargetRef }, false)
-  }
+  onDrop(
+    { 
+      dragSourceRef, 
+      dropTargetRef 
+    }, 
+    // drops on target is true here if compatible types and true hit test
+    !!checkDndType(dragSourceRef, dropTargetRef) && dropTargetRef.hitTest(targetX, targetY)
+  )
 }
 
 const handlePressUp = (event) => {
   event.preventDefault()
-  const dragSourceRef = _internalState.dragSourceRef
-  const dropTargetRef = _internalState.dropTargetRef
+  const {
+    dragSourceRef,
+    dropTargetRef,
+    onDragEnd
+  } = _internalState
+
   _internalState.isMouseMoving = false
 
   // NOTE: dragEnd called before onDrop
-  _internalState.onDragEnd({dragSourceRef, dropTargetRef})
+  onDragEnd({dragSourceRef, dropTargetRef})
   handleDrop({
     targetX: event.target.x,
     targetY: event.target.y
@@ -94,19 +103,11 @@ const createDndContext = (
   {
     onDragStart,
     onDragEnd,
-    onHover,
+    onDragging,
     onDrop,
     dndType
   } = {}
 ) => {
-
-  // in case dndType was arbitrarily overwritten/removed
-  if (dragSourceObj.dndType !== dndType 
-  || dropTargetObj.dndType !== dndType) {
-    console.warn('The DragSource or the DropTarget params do not have valid dndTypes')
-    console.warn('These objects have not been added to the context display object')
-    return displayObject
-  }
 
   // add a dndType flag to the cloned display object
   const contextObj = displayObject.clone(true)
@@ -114,7 +115,7 @@ const createDndContext = (
 
   connectCB(onDragStart)
   connectCB(onDragEnd)
-  connectCB(onHover)
+  connectCB(onDragging)
   connectCB(onDrop)
 
   dragSourceObj.addEventListener("pressmove", handlePressMove)
