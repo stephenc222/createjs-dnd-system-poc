@@ -5,6 +5,7 @@
  * 
  */
 
+// used like "this" for creating pseudo-context without the ES6 class overhead
 const _internalState = {
   onDragStart: () => {},
   onDragEnd: () => {},
@@ -19,13 +20,27 @@ const _internalState = {
   }
 }
 
-// checks DndTypes of dragSource and dropTarget objects
+/**
+ * helper to check DndTypes of DragSource and DropTarget objects
+ * @private
+ * @param {Object} dragSource - the dragSource object
+ * @param {Object} dropTarget - the dropTarget object
+ * @returns {Boolean} - whether or not dndTypes of either dragSource or dropTarget match
+ */
 const checkDndType = (dragSource, dropTarget) => dragSource.dndType === dropTarget.dndType
 
-// attach drag event callbacks
+/**
+ * helper that attaches dnd event callbacks to _internalState
+ * @private
+ * @param {Function} cb - the callback function to assign to _internalState
+ */
 const connectCB = cb => cb && (_internalState[cb.name] = cb)
 
-// TODO: maybe add a config setting to "auto center" mouse on drag source
+/**
+ * internal handler connected to CreateJS' pressmove event used to coordinate dnd interaction
+ * @private
+ * @param {Object} event - pressmove event object
+ */
 const handlePressMove = (event) => {
   // first pressMove event here  - cache initial offset for this drag event in progress
   const {
@@ -60,6 +75,13 @@ const handlePressMove = (event) => {
   )
 }
 
+/**
+ * internal handler for drop event on pressup event
+ * @private
+ * @param {Object} eventTarget - event target object containing the targetX and targetY of the drop event
+ * @param {Number} eventTarget.targetX - the X value of the drop event
+ * @param {Number} eventTarget.targetY - the Y value of the drop event
+ */
 const handleDrop = ({targetX, targetY}) => {
   // maintains shallow reference to _internalState
   const {
@@ -78,6 +100,11 @@ const handleDrop = ({targetX, targetY}) => {
   )
 }
 
+/**
+ * internal handler connected to CreateJS' pressup event used to coordinate dnd interaction
+ * @private
+ * @param {Object} event - pressup event object
+ */
 const handlePressUp = (event) => {
   event.preventDefault()
   const {
@@ -96,6 +123,18 @@ const handlePressUp = (event) => {
   })
 }
 
+/**
+ * creates a DndContext object
+ * @param {Object} displayObject - display object to designate as DndContext
+ * @param {Object} dragSourceObj - dragSource object created before calling this
+ * @param {Object} dropTargetObj - dropTarget object created before calling this
+ * @param {Object} callbackObj - object literal containing dnd event callback functions
+ * @param {Function} callbackObj.onDragStart - callback for onDragStart
+ * @param {Function} callbackObj.onDragEnd - callback for onDragEnd
+ * @param {Function} callbackObj.onDragging - callback for onDragging
+ * @param {Function} callbackObj.onDrop - callback for onDrop
+ * @param {Number|String} callbackObj.dndType - dndType to supply dndContext object with
+ */
 const createDndContext = (
   displayObject,
   dragSourceObj,
@@ -133,6 +172,12 @@ const createDndContext = (
   return contextObj
 }
 
+/**
+ * creates a DragSource object
+ * @param {Object} displayObject - display object to designate as DragSource
+ * @param {Object} param object - object containing dndType
+ * @param {Number|String} param.dndType - dndType to supply dragSource 
+ */
 const createDndDragSource = (displayObject, {dndType}) => {
   // add a dndType flag to the display object
   const dragSource = displayObject.clone(true)
@@ -140,6 +185,12 @@ const createDndDragSource = (displayObject, {dndType}) => {
   return dragSource
 }
 
+/**
+ * creates a DropTarget object
+ * @param {Object} displayObject - display object to designate as DropTarget
+ * @param {Object} param object - object containing dndType
+ * @param {Number|String} param.dndType - dndType to supply DropTarget 
+ */
 const createDndDropTarget = (displayObject, {dndType}) => {
   // add a dndType flag to the display object
   const dropTarget = displayObject.clone(true)
@@ -148,6 +199,11 @@ const createDndDropTarget = (displayObject, {dndType}) => {
 }
 
 export {
+  checkDndType,
+  connectCB,
+  handlePressMove,
+  handleDrop,
+  handlePressUp,
   createDndContext,
   createDndDragSource,
   createDndDropTarget

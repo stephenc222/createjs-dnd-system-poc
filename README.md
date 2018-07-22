@@ -1,3 +1,3 @@
-# Coin Grabber
+# CreateJS DND System POC
 
 TODO
