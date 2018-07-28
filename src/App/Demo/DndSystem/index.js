@@ -4,21 +4,7 @@
  * modelling drag and drop on a canvas after React Dnd
  * 
  */
-
-// used like "this" for creating pseudo-context without the ES6 class overhead
-const _internalState = {
-  onDragStart: () => {},
-  onDragEnd: () => {},
-  onDragging: () => {},
-  onDrop: () => {},
-  isMouseMoving: false,
-  dragSourceRef: {},
-  dropTargetRef: {},
-  initialOffset: {
-    x: null,
-    y: null
-  }
-}
+import { _internalState } from './util'
 
 /**
  * helper to check DndTypes of DragSource and DropTarget objects
