@@ -20,6 +20,7 @@ const WIDTH = 640
 const HEIGHT = 480
 
 const CUSTOM_DND_TYPE = 'CUSTOM_DND_TYPE'
+const ANOTHER_CUSTOM_DND_TYPE = 'ANOTHER_CUSTOM_DND_TYPE'
 
 const KEY = {
   END: 35,
@@ -165,7 +166,6 @@ class Demo extends Component {
   }
 
   titleExit = () => {
-    // TODO: exit Title Scene
     this.stage.removeChild(gameState.scene)
   }
 
@@ -195,24 +195,47 @@ class Demo extends Component {
     // create the dragSource display object to the context
     const dragSourceObj = this.createContainerWithRectShape({
       color: 'orange', 
-      x: 50, 
-      y: 50, 
+      x: 145, 
+      y: 75, 
+      width: 50, 
+      height: 50
+    })
+    const wrapDragSourceObj = createDndDragSource(dragSourceObj, {dndType: CUSTOM_DND_TYPE})
+
+    // create the second dragSource display object to the context
+    // illustrates a second dndType
+    const dragSourceObjOne = this.createContainerWithRectShape({
+      color: 'blue', 
+      x: 395, 
+      y: 75, 
       width: 50, 
       height: 50
     })
 
-    const wrapDragSourceObj = createDndDragSource(dragSourceObj, {dndType: CUSTOM_DND_TYPE})
+    const wrapDragSourceObjOne = createDndDragSource(dragSourceObjOne, {dndType: ANOTHER_CUSTOM_DND_TYPE})
 
     // create the dropTarget display object to the context
     const dropTargetObj = this.createContainerWithRectShape({
       color: 'yellow', 
-      x: 150, 
-      y: 350, 
-      width: 200, 
-      height: 100
+      x: 100, 
+      y: 300, 
+      width: 150, 
+      height: 150
     })
 
     const wrapDropTargetObj = createDndDropTarget(dropTargetObj, {dndType: CUSTOM_DND_TYPE})
+
+    // create the second dropTarget display object to the context
+    // with the other dndType
+    const dropTargetObjOne = this.createContainerWithRectShape({
+      color: 'purple', 
+      x: 350, 
+      y: 300, 
+      width: 150, 
+      height: 150
+    })
+
+    const wrapDropTargetObjOne = createDndDropTarget(dropTargetObjOne, {dndType: ANOTHER_CUSTOM_DND_TYPE})
 
     // create the context display object to the scene
     const contextObj = this.createContainerWithRectShape({
@@ -225,24 +248,24 @@ class Demo extends Component {
 
     // TODO: add in-depth documentation on how to use these callbacks and what they expect
     const dragEventCallbacks = {
-      onDragStart: ({dragSourceRef, dropTargetRef}) => {
-        console.warn('onDragStart:', {dragSourceRef, dropTargetRef})
+      onDragStart: ({dragSourceRefs, dropTargetRefs, dragSourceRefIndex}) => {
+        console.warn('onDragStart:', {dragSourceRefs, dropTargetRefs, dragSourceRefIndex})
       },
-      onDragEnd: ({dragSourceRef, dropTargetRef}) => {
-        console.warn('onDragEnd:', {dragSourceRef, dropTargetRef})
+      onDragEnd: ({dragSourceRefs, dropTargetRefs, dragSourceRefIndex}) => {
+        console.warn('onDragEnd:', {dragSourceRefs, dropTargetRefs, dragSourceRefIndex})
       },
-      onDragging: ({dragSourceRef, dropTargetRef}, hoversOnTarget) => {
-        console.warn('onDragging:', {dragSourceRef, dropTargetRef}, hoversOnTarget)
+      onDragging: ({dragSourceRefs, dropTargetRefs, dragSourceRefIndex}, hoversOnTarget) => {
+        console.warn('onDragging:', {dragSourceRefs, dropTargetRefs, dragSourceRefIndex, dropTargetRefs}, hoversOnTarget)
       },
-      onDrop: ({dragSourceRef, dropTargetRef}, didDropOnTarget) => {
-        console.warn('onDrop:', {dragSourceRef, dropTargetRef}, didDropOnTarget)
+      onDrop: ({dragSourceRefs, dropTargetRefs, dragSourceRefIndex}, didDropOnTarget) => {
+        console.warn('onDrop:', {dragSourceRefs, dropTargetRefs, dragSourceRefIndex}, didDropOnTarget)
       },
     }
 
     const wrapContextObj = createDndContext(
       contextObj, 
-      wrapDragSourceObj, 
-      wrapDropTargetObj,
+      [wrapDragSourceObj, wrapDragSourceObjOne],
+      [wrapDropTargetObj, wrapDropTargetObjOne],
       {
         dndType: CUSTOM_DND_TYPE,
         ...dragEventCallbacks

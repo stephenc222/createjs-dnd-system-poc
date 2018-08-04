@@ -8,8 +8,8 @@ export const _internalState = {
   onDragging: () => {},
   onDrop: () => {},
   isMouseMoving: false,
-  dragSourceRef: {},
-  dropTargetRef: {},
+  dragSourceRefs: [],
+  dropTargetRefs: [],
   initialOffset: {
     x: null,
     y: null
