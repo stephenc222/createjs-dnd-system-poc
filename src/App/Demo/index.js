@@ -4,6 +4,7 @@ import {
   createDndDragSource,
   createDndDropTarget
 } from './DndSystem'
+import dispatcher from './Dispatcher'
 import { 
   centerText,
   createText, 
@@ -14,8 +15,10 @@ const {
   Container,
   Shape,
   Ticker,
+  Tween,
+  EventDispatcher
 } = window.createjs
-
+console.log({Tween, EventDispatcher})
 const WIDTH = 640
 const HEIGHT = 480
 
@@ -57,12 +60,47 @@ const gameState = {
   particleLife: 5
 }
 
+// TODO: add in-depth documentation on how to use these callbacks and what they expect
+const dragEventCallbacks = {
+  onDragStart: ({dragSourceRefs, dropTargetRefs, dragSourceRefIndex}) => {
+    console.warn('onDragStart:', {dragSourceRefs, dropTargetRefs, dragSourceRefIndex})
+    const activeDragSource = dragSourceRefs[dragSourceRefIndex]
+    dispatcher.dispatch('onDragStart', {activeDragSource})
+  },
+  onDragEnd: ({dragSourceRefs, dropTargetRefs, dragSourceRefIndex}) => {
+    console.warn('onDragEnd:', {dragSourceRefs, dropTargetRefs, dragSourceRefIndex})
+  },
+  onDragging: ({dragSourceRefs, dropTargetRefs, dragSourceRefIndex}, hoversOnTarget) => {
+    console.warn('onDragging:', {dragSourceRefs, dropTargetRefs, dragSourceRefIndex, dropTargetRefs}, hoversOnTarget)
+  },
+  onDrop: ({dragSourceRefs, dropTargetRefs, dragSourceRefIndex}, didDropOnTarget) => {
+    console.warn('onDrop:', {dragSourceRefs, dropTargetRefs, dragSourceRefIndex}, didDropOnTarget)
+  },
+}
+
+
+const dummyFunc = (eventName, eventData) => {
+  // console.log('called on dispatch', {eventName,eventData })
+}
+
 // main demo Canvas container, class for context access
 class Demo extends Component {
   constructor(props) {
     super(props)
     this.Ticker = Ticker
     this.stage = {}
+    this.onDragStart = this.onDragStart.bind(this)
+    this.addListener(dummyFunc, 'tick')
+    this.addListener(this.onDragStart, 'onDragStart')
+  }
+
+  // just ticks for now
+  addListener(func, eventName) {
+    dispatcher.listen(func, eventName)
+  }
+
+  onDragStart(eventName, eventData) {
+    console.log('do something on start')
   }
 
   togglePause = () => {
@@ -124,7 +162,10 @@ class Demo extends Component {
     const shape = new Shape()
     const container = new Container()
 
-    shape.graphics.beginFill(color).drawRect(x, y, width, height)
+    shape.graphics
+      .beginStroke("black")
+      .beginFill(color)
+      .drawRect(x, y, width, height)
     shape.x = x
     shape.y = y
     shape.regX = x
@@ -216,7 +257,7 @@ class Demo extends Component {
 
     // create the dropTarget display object to the context
     const dropTargetObj = this.createContainerWithRectShape({
-      color: 'yellow', 
+      color: 'orange', 
       x: 100, 
       y: 300, 
       width: 150, 
@@ -228,7 +269,7 @@ class Demo extends Component {
     // create the second dropTarget display object to the context
     // with the other dndType
     const dropTargetObjOne = this.createContainerWithRectShape({
-      color: 'purple', 
+      color: 'blue', 
       x: 350, 
       y: 300, 
       width: 150, 
@@ -245,22 +286,6 @@ class Demo extends Component {
       width: WIDTH, 
       height: HEIGHT
     })
-
-    // TODO: add in-depth documentation on how to use these callbacks and what they expect
-    const dragEventCallbacks = {
-      onDragStart: ({dragSourceRefs, dropTargetRefs, dragSourceRefIndex}) => {
-        console.warn('onDragStart:', {dragSourceRefs, dropTargetRefs, dragSourceRefIndex})
-      },
-      onDragEnd: ({dragSourceRefs, dropTargetRefs, dragSourceRefIndex}) => {
-        console.warn('onDragEnd:', {dragSourceRefs, dropTargetRefs, dragSourceRefIndex})
-      },
-      onDragging: ({dragSourceRefs, dropTargetRefs, dragSourceRefIndex}, hoversOnTarget) => {
-        console.warn('onDragging:', {dragSourceRefs, dropTargetRefs, dragSourceRefIndex, dropTargetRefs}, hoversOnTarget)
-      },
-      onDrop: ({dragSourceRefs, dropTargetRefs, dragSourceRefIndex}, didDropOnTarget) => {
-        console.warn('onDrop:', {dragSourceRefs, dropTargetRefs, dragSourceRefIndex}, didDropOnTarget)
-      },
-    }
 
     const wrapContextObj = createDndContext(
       contextObj, 
@@ -306,6 +331,7 @@ class Demo extends Component {
     this.gameCanvas.focus()
     const masterTick = (event) => {
       // gameState is a global
+      dispatcher.dispatch('tick', event)
       gameState.stage.update()
     }
     this.Ticker.on("tick", (event) => masterTick(event))
@@ -317,8 +343,8 @@ class Demo extends Component {
         width={WIDTH} 
         height={HEIGHT} 
         style={{
-          border: '1px solid red',
-          background: 'lightgrey'
+          border: '1px solid black',
+          background: 'lightblue'
         }} 
         ref={(elem => this.gameCanvas = elem)}
       /> 
